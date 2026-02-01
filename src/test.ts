@@ -130,6 +130,11 @@ async function main() {
           server: proxyUrl,
           bypass: "localhost,127.0.0.1",
         },
+        args: [
+          // Force remote DNS resolution through the SOCKS5 proxy
+          // This prevents DNS leaks by blocking local DNS resolution
+          `--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE tailscale`,
+        ],
       }),
     });
 

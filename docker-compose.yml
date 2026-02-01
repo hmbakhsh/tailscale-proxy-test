@@ -2,9 +2,10 @@ services:
   tailscale:
     image: tailscale/tailscale:v1.78.1
     hostname: tailscale
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
+    networks:
+      proxy_net:
+        aliases:
+          - tailscale
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
       - TS_EXTRA_ARGS=--exit-node=${TS_EXIT_NODE}
@@ -42,8 +43,14 @@ services:
     depends_on:
       tailscale:
         condition: service_healthy
+    networks:
+      - proxy_net
     volumes:
       - ./screenshots:/app/screenshots
+
+networks:
+  proxy_net:
+    driver: bridge
 
 volumes:
   tailscale-state:
