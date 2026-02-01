@@ -33,6 +33,7 @@ services:
       - TAILSCALE_PROXY_URL=socks5://tailscale:1080
       - PCSE_USERNAME=${PCSE_USERNAME}
       - PCSE_PASSWORD=${PCSE_PASSWORD}
+      - PCSE_PRACTICE_CODE=${PCSE_PRACTICE_CODE}
       - HEADLESS=true
     volumes:
       - ./screenshots:/app/screenshots
