@@ -4,10 +4,14 @@ services:
     hostname: tailscale-proxy-poc
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
-      - TS_EXTRA_ARGS=--exit-node=${TS_EXIT_NODE}
+      - TS_EXTRA_ARGS=--exit-node=${TS_EXIT_NODE} --accept-dns=true
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_USERSPACE=true
       - TS_SOCKS5_SERVER=:1080
+      - TS_ACCEPT_DNS=true
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     volumes:
       - tailscale-state:/var/lib/tailscale
     healthcheck:
