@@ -2,7 +2,6 @@ import { chromium, type Browser, type Page } from "playwright";
 import { mkdir } from "fs/promises";
 
 const PCSE_BASE_URL = "https://secure.pcse.england.nhs.uk";
-const PCSE_LOGIN_URL = `${PCSE_BASE_URL}/AccountPortal/Account/Login`;
 const PCSE_SUCCESS_URL = `${PCSE_BASE_URL}/HomePortal/Organisation/SelectOrganisation`;
 
 const SCREENSHOTS_DIR = "./screenshots";
@@ -17,6 +16,7 @@ async function checkExitNodeIP(page: Page): Promise<string> {
   await page.goto("https://api.ipify.org?format=json");
   const response = await page.locator("body").textContent();
   const ip = JSON.parse(response || "{}").ip;
+  await page.screenshot({ path: `${SCREENSHOTS_DIR}/01-ip-check.png`, fullPage: true });
 
   console.log(`Outbound IP: ${ip}`);
 
@@ -32,15 +32,20 @@ async function loginToPCSE(page: Page): Promise<boolean> {
     throw new Error("PCSE_USERNAME, PCSE_PASSWORD, and PCSE_PRACTICE_CODE must be set");
   }
 
-  console.log(`Navigating to PCSE login page...`);
-  await page.goto(PCSE_LOGIN_URL);
-  await page.screenshot({ path: `${SCREENSHOTS_DIR}/02-login-page.png`, fullPage: true });
+  console.log(`Navigating to PCSE...`);
+  await page.goto(PCSE_BASE_URL);
+  await page.screenshot({ path: `${SCREENSHOTS_DIR}/02-landing-page.png`, fullPage: true });
+
+  // Wait for login form to be ready
+  console.log("Waiting for login form...");
+  await page.locator("#PlaceHolderMain_signInControl_UserName").waitFor({ state: "visible", timeout: 30000 });
+  await page.screenshot({ path: `${SCREENSHOTS_DIR}/03-login-form-ready.png`, fullPage: true });
 
   console.log("Filling credentials...");
   await page.locator("#PlaceHolderMain_signInControl_UserName").fill(username);
   await page.locator("#PlaceHolderMain_signInControl_password").pressSequentially(password);
 
-  await page.screenshot({ path: `${SCREENSHOTS_DIR}/03-credentials-filled.png`, fullPage: true });
+  await page.screenshot({ path: `${SCREENSHOTS_DIR}/04-credentials-filled.png`, fullPage: true });
 
   console.log("Clicking sign in...");
   await page.locator("#PlaceHolderMain_signInControl_login").click();
@@ -53,12 +58,12 @@ async function loginToPCSE(page: Page): Promise<boolean> {
 
   if (result === "success") {
     console.log("Login successful!");
-    await page.screenshot({ path: `${SCREENSHOTS_DIR}/04-login-success.png`, fullPage: true });
+    await page.screenshot({ path: `${SCREENSHOTS_DIR}/05-login-success.png`, fullPage: true });
     return true;
   } else {
     const errorText = await page.locator("#PlaceHolderMain_signInControl_FailureText").textContent();
     console.error(`Login failed: ${errorText}`);
-    await page.screenshot({ path: `${SCREENSHOTS_DIR}/04-login-failed.png`, fullPage: true });
+    await page.screenshot({ path: `${SCREENSHOTS_DIR}/05-login-failed.png`, fullPage: true });
     return false;
   }
 }
@@ -79,11 +84,11 @@ async function selectPractice(page: Page, practiceCode: string): Promise<boolean
   try {
     await page.waitForURL("**/HomePortal/**", { timeout: 30000 });
     console.log("Practice selected successfully!");
-    await page.screenshot({ path: `${SCREENSHOTS_DIR}/05-practice-selected.png`, fullPage: true });
+    await page.screenshot({ path: `${SCREENSHOTS_DIR}/06-practice-selected.png`, fullPage: true });
     return true;
   } catch (error) {
     console.error("Failed to select practice:", error);
-    await page.screenshot({ path: `${SCREENSHOTS_DIR}/05-practice-failed.png`, fullPage: true });
+    await page.screenshot({ path: `${SCREENSHOTS_DIR}/06-practice-failed.png`, fullPage: true });
     return false;
   }
 }
@@ -92,7 +97,7 @@ async function navigateToGOS1Form(page: Page): Promise<boolean> {
   console.log("Navigating to GOS form selection page...");
 
   await page.goto(`${PCSE_BASE_URL}/OPH/Home/Claim/`);
-  await page.screenshot({ path: `${SCREENSHOTS_DIR}/06-gos-selection-page.png`, fullPage: true });
+  await page.screenshot({ path: `${SCREENSHOTS_DIR}/07-gos-selection-page.png`, fullPage: true });
 
   console.log("Clicking GOS1 button...");
   await page.locator('button:has-text("GOS1")').click();
@@ -100,11 +105,11 @@ async function navigateToGOS1Form(page: Page): Promise<boolean> {
   try {
     await page.waitForURL("**/OPH/Ophthalmic/GOSOne**", { timeout: 30000 });
     console.log("GOS1 form reached successfully!");
-    await page.screenshot({ path: `${SCREENSHOTS_DIR}/07-gos1-form-reached.png`, fullPage: true });
+    await page.screenshot({ path: `${SCREENSHOTS_DIR}/08-gos1-form-reached.png`, fullPage: true });
     return true;
   } catch (error) {
     console.error("Failed to reach GOS1 form:", error);
-    await page.screenshot({ path: `${SCREENSHOTS_DIR}/07-gos1-failed.png`, fullPage: true });
+    await page.screenshot({ path: `${SCREENSHOTS_DIR}/08-gos1-failed.png`, fullPage: true });
     return false;
   }
 }
