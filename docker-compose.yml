@@ -34,7 +34,8 @@ services:
   test:
     build: .
     environment:
-      - TAILSCALE_PROXY_URL=socks5://tailscale:1080
+      # Use socks5h so DNS lookups resolve through the Tailscale proxy instead of Docker's internal resolver
+      - TAILSCALE_PROXY_URL=socks5h://tailscale:1080
       - PCSE_USERNAME=${PCSE_USERNAME}
       - PCSE_PASSWORD=${PCSE_PASSWORD}
       - PCSE_PRACTICE_CODE=${PCSE_PRACTICE_CODE}
