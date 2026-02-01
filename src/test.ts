@@ -105,29 +105,23 @@ async function selectPractice(page: Page, practiceCode: string): Promise<boolean
 }
 
 async function navigateToGOS1Form(page: Page): Promise<boolean> {
-  console.log("Navigating to GOS form selection page...");
+  console.log("Navigating directly to GOS1 form...");
 
   // Dismiss cookie banner if present
   await dismissCookieBanner(page);
 
-  // Navigate to the claim page
-  await page.goto(`${PCSE_BASE_URL}/OPH/Home/Claim/`, { waitUntil: 'networkidle' });
-  await page.screenshot({ path: `${SCREENSHOTS_DIR}/07-gos-selection-page.png`, fullPage: true });
+  // Go directly to GOS1 form URL
+  await page.goto(`${PCSE_BASE_URL}/OPH/Ophthalmic/GOSOne`, { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('networkidle');
+  await page.screenshot({ path: `${SCREENSHOTS_DIR}/07-gos1-form.png`, fullPage: true });
 
-  // Dismiss cookie banner again if it reappears
-  await dismissCookieBanner(page);
-
-  console.log("Clicking GOS1 button...");
-  await page.locator('button:has-text("GOS1")').click();
-
-  try {
-    await page.waitForURL("**/OPH/Ophthalmic/GOSOne**", { timeout: 30000 });
+  // Check if we're on the right page
+  const currentUrl = page.url();
+  if (currentUrl.includes('/OPH/Ophthalmic/GOSOne')) {
     console.log("GOS1 form reached successfully!");
-    await page.screenshot({ path: `${SCREENSHOTS_DIR}/08-gos1-form-reached.png`, fullPage: true });
     return true;
-  } catch (error) {
-    console.error("Failed to reach GOS1 form:", error);
-    await page.screenshot({ path: `${SCREENSHOTS_DIR}/08-gos1-failed.png`, fullPage: true });
+  } else {
+    console.error(`Failed to reach GOS1 form. Current URL: ${currentUrl}`);
     return false;
   }
 }
