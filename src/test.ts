@@ -23,6 +23,15 @@ async function checkExitNodeIP(page: Page): Promise<string> {
   return ip;
 }
 
+async function dismissCookieBanner(page: Page): Promise<void> {
+  const confirmButton = page.locator('button:has-text("Confirm")');
+  if (await confirmButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+    console.log("Dismissing cookie banner...");
+    await confirmButton.click();
+    await page.waitForTimeout(500);
+  }
+}
+
 async function loginToPCSE(page: Page): Promise<boolean> {
   const username = process.env.PCSE_USERNAME;
   const password = process.env.PCSE_PASSWORD;
@@ -58,6 +67,8 @@ async function loginToPCSE(page: Page): Promise<boolean> {
 
   if (result === "success") {
     console.log("Login successful!");
+    // Dismiss cookie banner if present
+    await dismissCookieBanner(page);
     await page.screenshot({ path: `${SCREENSHOTS_DIR}/05-login-success.png`, fullPage: true });
     return true;
   } else {
@@ -96,17 +107,15 @@ async function selectPractice(page: Page, practiceCode: string): Promise<boolean
 async function navigateToGOS1Form(page: Page): Promise<boolean> {
   console.log("Navigating to GOS form selection page...");
 
-  try {
-    // Use waitUntil: 'domcontentloaded' to avoid ERR_ABORTED on redirects
-    await page.goto(`${PCSE_BASE_URL}/OPH/Home/Claim/`, { waitUntil: 'domcontentloaded' });
-  } catch (error) {
-    console.log("Navigation had an issue, checking current state...");
-    await page.screenshot({ path: `${SCREENSHOTS_DIR}/07-navigation-issue.png`, fullPage: true });
-  }
+  // Dismiss cookie banner if present
+  await dismissCookieBanner(page);
 
-  // Wait for the page to stabilize
-  await page.waitForLoadState('networkidle');
+  // Navigate to the claim page
+  await page.goto(`${PCSE_BASE_URL}/OPH/Home/Claim/`, { waitUntil: 'networkidle' });
   await page.screenshot({ path: `${SCREENSHOTS_DIR}/07-gos-selection-page.png`, fullPage: true });
+
+  // Dismiss cookie banner again if it reappears
+  await dismissCookieBanner(page);
 
   console.log("Clicking GOS1 button...");
   await page.locator('button:has-text("GOS1")').click();
