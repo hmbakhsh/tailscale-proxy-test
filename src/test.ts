@@ -1,7 +1,7 @@
 import { chromium, type Browser, type Page } from "playwright";
 import { mkdir } from "fs/promises";
 
-const PCSE_BASE_URL = "https://portal.pcse.england.nhs.uk";
+const PCSE_BASE_URL = "https://secure.pcse.england.nhs.uk";
 const PCSE_LOGIN_URL = `${PCSE_BASE_URL}/AccountPortal/Account/Login`;
 const PCSE_SUCCESS_URL = `${PCSE_BASE_URL}/HomePortal/Organisation/SelectOrganisation`;
 
