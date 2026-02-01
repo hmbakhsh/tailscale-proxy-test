@@ -1,0 +1,41 @@
+services:
+  tailscale:
+    image: tailscale/tailscale:v1.78.1
+    hostname: tailscale-proxy-poc
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_EXTRA_ARGS=--exit-node=${TS_EXIT_NODE}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=true
+      - TS_SOCKS5_SERVER=:1080
+    volumes:
+      - tailscale-state:/var/lib/tailscale
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9002/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  test:
+    build: .
+    depends_on:
+      tailscale:
+        condition: service_healthy
+    environment:
+      - TAILSCALE_PROXY_URL=socks5://tailscale:1080
+      - PCSE_USERNAME=${PCSE_USERNAME}
+      - PCSE_PASSWORD=${PCSE_PASSWORD}
+      - HEADLESS=true
+    volumes:
+      - ./screenshots:/app/screenshots
+
+volumes:
+  tailscale-state:
