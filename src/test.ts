@@ -105,18 +105,47 @@ async function selectPractice(page: Page, practiceCode: string): Promise<boolean
 }
 
 async function navigateToGOS1Form(page: Page): Promise<boolean> {
-  console.log("Navigating directly to GOS1 form...");
+  console.log("Navigating to GOS1 form via UI...");
 
   // Dismiss cookie banner if present
   await dismissCookieBanner(page);
 
-  // Go directly to GOS1 form URL
-  await page.goto(`${PCSE_BASE_URL}/OPH/Ophthalmic/GOSOne`, { waitUntil: 'domcontentloaded' });
+  // Click OPHTHALMIC in the navigation bar
+  console.log("Clicking OPHTHALMIC in nav bar...");
+  await page.locator('nav a:has-text("OPHTHALMIC"), .nav a:has-text("OPHTHALMIC")').first().click();
   await page.waitForLoadState('networkidle');
-  await page.screenshot({ path: `${SCREENSHOTS_DIR}/07-gos1-form.png`, fullPage: true });
+  await page.screenshot({ path: `${SCREENSHOTS_DIR}/07-ophthalmic-section.png`, fullPage: true });
+  console.log(`Current URL after OPHTHALMIC click: ${page.url()}`);
+
+  // Look for Create Claim link
+  console.log("Looking for Create Claim link...");
+  const createClaimLink = page.locator('a:has-text("Create Claim")');
+  if (await createClaimLink.isVisible({ timeout: 5000 }).catch(() => false)) {
+    await createClaimLink.click();
+    await page.waitForLoadState('networkidle');
+    await page.screenshot({ path: `${SCREENSHOTS_DIR}/08-create-claim-page.png`, fullPage: true });
+    console.log(`Current URL after Create Claim: ${page.url()}`);
+  }
+
+  // Dismiss cookie banner again if it reappears
+  await dismissCookieBanner(page);
+
+  // Now look for GOS1 button
+  console.log("Looking for GOS1 button...");
+  await page.screenshot({ path: `${SCREENSHOTS_DIR}/09-before-gos1-click.png`, fullPage: true });
+
+  const gos1Button = page.locator('button:has-text("GOS1")');
+  if (await gos1Button.isVisible({ timeout: 5000 }).catch(() => false)) {
+    console.log("Clicking GOS1 button...");
+    await gos1Button.click();
+    await page.waitForLoadState('networkidle');
+  }
+
+  await page.screenshot({ path: `${SCREENSHOTS_DIR}/10-final-state.png`, fullPage: true });
 
   // Check if we're on the right page
   const currentUrl = page.url();
+  console.log(`Final URL: ${currentUrl}`);
   if (currentUrl.includes('/OPH/Ophthalmic/GOSOne')) {
     console.log("GOS1 form reached successfully!");
     return true;
