@@ -105,14 +105,16 @@ async function selectPractice(page: Page, practiceCode: string): Promise<boolean
 }
 
 async function navigateToGOS1Form(page: Page): Promise<boolean> {
-  console.log("Navigating to GOS1 form...");
+  console.log("Navigating to GOS1 form via clicks...");
 
   // Dismiss cookie banner if present
   await dismissCookieBanner(page);
 
-  // Step 1: Go to /OPH/
-  console.log("Step 1: Going to /OPH/...");
-  await page.goto(`${PCSE_BASE_URL}/OPH/`, { waitUntil: 'networkidle' });
+  // We're on /HomePortal/ after practice selection
+  // Step 1: Click "OPHTHALMIC >" button on the home page
+  console.log("Step 1: Clicking OPHTHALMIC button on home page...");
+  await page.locator('a.btn:has-text("OPHTHALMIC")').click();
+  await page.waitForLoadState('networkidle');
   await page.screenshot({ path: `${SCREENSHOTS_DIR}/07-oph-page.png`, fullPage: true });
   console.log(`URL: ${page.url()}`);
 
