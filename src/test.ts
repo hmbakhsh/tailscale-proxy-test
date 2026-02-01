@@ -96,7 +96,16 @@ async function selectPractice(page: Page, practiceCode: string): Promise<boolean
 async function navigateToGOS1Form(page: Page): Promise<boolean> {
   console.log("Navigating to GOS form selection page...");
 
-  await page.goto(`${PCSE_BASE_URL}/OPH/Home/Claim/`);
+  try {
+    // Use waitUntil: 'domcontentloaded' to avoid ERR_ABORTED on redirects
+    await page.goto(`${PCSE_BASE_URL}/OPH/Home/Claim/`, { waitUntil: 'domcontentloaded' });
+  } catch (error) {
+    console.log("Navigation had an issue, checking current state...");
+    await page.screenshot({ path: `${SCREENSHOTS_DIR}/07-navigation-issue.png`, fullPage: true });
+  }
+
+  // Wait for the page to stabilize
+  await page.waitForLoadState('networkidle');
   await page.screenshot({ path: `${SCREENSHOTS_DIR}/07-gos-selection-page.png`, fullPage: true });
 
   console.log("Clicking GOS1 button...");
@@ -195,6 +204,16 @@ async function main() {
     process.exit(gos1Reached ? 0 : 1);
   } catch (error) {
     console.error("Test failed with error:", error);
+    // Try to capture final state
+    try {
+      const pages = browser?.contexts()[0]?.pages();
+      if (pages && pages.length > 0) {
+        await pages[0].screenshot({ path: `${SCREENSHOTS_DIR}/99-error-state.png`, fullPage: true });
+        console.log("Error screenshot saved to 99-error-state.png");
+      }
+    } catch {
+      // Ignore screenshot errors
+    }
     process.exit(1);
   } finally {
     await browser?.close();
