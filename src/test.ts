@@ -105,43 +105,32 @@ async function selectPractice(page: Page, practiceCode: string): Promise<boolean
 }
 
 async function navigateToGOS1Form(page: Page): Promise<boolean> {
-  console.log("Navigating to GOS1 form via UI...");
+  console.log("Navigating to GOS1 form...");
 
   // Dismiss cookie banner if present
   await dismissCookieBanner(page);
 
-  // Click OPHTHALMIC in the navigation bar
-  console.log("Clicking OPHTHALMIC in nav bar...");
-  await page.locator('nav a:has-text("OPHTHALMIC"), .nav a:has-text("OPHTHALMIC")').first().click();
-  await page.waitForLoadState('networkidle');
-  await page.screenshot({ path: `${SCREENSHOTS_DIR}/07-ophthalmic-section.png`, fullPage: true });
-  console.log(`Current URL after OPHTHALMIC click: ${page.url()}`);
+  // Step 1: Go to /OPH/
+  console.log("Step 1: Going to /OPH/...");
+  await page.goto(`${PCSE_BASE_URL}/OPH/`, { waitUntil: 'networkidle' });
+  await page.screenshot({ path: `${SCREENSHOTS_DIR}/07-oph-page.png`, fullPage: true });
+  console.log(`URL: ${page.url()}`);
 
-  // Look for Create Claim link
-  console.log("Looking for Create Claim link...");
-  const createClaimLink = page.locator('a:has-text("Create Claim")');
-  if (await createClaimLink.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await createClaimLink.click();
-    await page.waitForLoadState('networkidle');
-    await page.screenshot({ path: `${SCREENSHOTS_DIR}/08-create-claim-page.png`, fullPage: true });
-    console.log(`Current URL after Create Claim: ${page.url()}`);
-  }
-
-  // Dismiss cookie banner again if it reappears
+  // Dismiss cookie banner if present
   await dismissCookieBanner(page);
 
-  // Now look for GOS1 button
-  console.log("Looking for GOS1 button...");
-  await page.screenshot({ path: `${SCREENSHOTS_DIR}/09-before-gos1-click.png`, fullPage: true });
+  // Step 2: Click "Make a Claim" button
+  console.log("Step 2: Clicking Make a Claim button...");
+  await page.locator('button:has-text("Make a Claim")').click();
+  await page.waitForLoadState('networkidle');
+  await page.screenshot({ path: `${SCREENSHOTS_DIR}/08-make-claim-page.png`, fullPage: true });
+  console.log(`URL: ${page.url()}`);
 
-  const gos1Button = page.locator('button:has-text("GOS1")');
-  if (await gos1Button.isVisible({ timeout: 5000 }).catch(() => false)) {
-    console.log("Clicking GOS1 button...");
-    await gos1Button.click();
-    await page.waitForLoadState('networkidle');
-  }
-
-  await page.screenshot({ path: `${SCREENSHOTS_DIR}/10-final-state.png`, fullPage: true });
+  // Step 3: Click GOS1 button
+  console.log("Step 3: Clicking GOS1 button...");
+  await page.locator('button:has-text("GOS1")').click();
+  await page.waitForLoadState('networkidle');
+  await page.screenshot({ path: `${SCREENSHOTS_DIR}/09-gos1-form.png`, fullPage: true });
 
   // Check if we're on the right page
   const currentUrl = page.url();
