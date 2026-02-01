@@ -11,7 +11,7 @@ services:
     volumes:
       - tailscale-state:/var/lib/tailscale
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9002/healthz"]
+      test: ["CMD", "tailscale", "status", "--json"]
       interval: 5s
       timeout: 5s
       retries: 10
